@@ -4,5 +4,6 @@
 composer install
 php artisan key:generate
 php artisan migrate
+php artisan key:generate --env=testing
 
 php-fpm
