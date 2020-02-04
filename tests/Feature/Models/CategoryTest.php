@@ -4,13 +4,22 @@ namespace Tests\Feature\Models;
 
 use App\Models\Category;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CategoryTest extends TestCase
 {
     use DatabaseMigrations;
+
+    public function testUuid()
+    {
+        $category = Category::create([
+            'name' => 'test1'
+        ]);
+        $category->refresh();
+
+        $this->assertTrue(Uuid::isValid($category->id));
+    }
 
     public function testList()
     {
@@ -33,7 +42,7 @@ class CategoryTest extends TestCase
         );
     }
 
-    public function testCreate()
+    public function testCreateName()
     {
         $category = Category::create([
             'name' => 'test1'
@@ -43,7 +52,10 @@ class CategoryTest extends TestCase
         $this->assertEquals('test1', $category->name);
         $this->assertNull($category->description);
         $this->assertTrue($category->is_active);
+    }
 
+    public function testCreatDescription()
+    {
         $category = Category::create([
             'name' => 'test1',
             'description' => null
@@ -57,7 +69,10 @@ class CategoryTest extends TestCase
         ]);
 
         $this->assertEquals('test_description',$category->description);
+    }
 
+    public function testCreateIsActive()
+    {
         $category = Category::create([
             'name' => 'test1',
             'is_active' => false
@@ -92,5 +107,16 @@ class CategoryTest extends TestCase
          foreach ($data as $key => $value){
             $this->assertEquals($value, $category->{$key});
          }
+    }
+
+    public function testDelete()
+    {
+        /** @var Category $category */
+        $category = factory(Category::class)->create([
+            'description' => 'test_description',
+            'is_active' => false
+        ])->first();
+
+        $this->assertTrue($category->delete());
     }
 }
