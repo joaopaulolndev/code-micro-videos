@@ -11,16 +11,6 @@ class CategoryTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public function testUuid()
-    {
-        $category = Category::create([
-            'name' => 'test1'
-        ]);
-        $category->refresh();
-
-        $this->assertTrue(Uuid::isValid($category->id));
-    }
-
     public function testList()
     {
         factory(Category::class, 1)->create();
@@ -42,6 +32,17 @@ class CategoryTest extends TestCase
         );
     }
 
+    public function testUuid()
+    {
+        $category = Category::create([
+            'name' => 'test1'
+        ]);
+        $category->refresh();
+
+        $this->assertTrue(Uuid::isValid($category->id));
+        $this->assertEquals(36, strlen($category->id));
+    }
+
     public function testCreateName()
     {
         $category = Category::create([
@@ -54,7 +55,7 @@ class CategoryTest extends TestCase
         $this->assertTrue($category->is_active);
     }
 
-    public function testCreatDescription()
+    public function testCreateDescription()
     {
         $category = Category::create([
             'name' => 'test1',
@@ -112,11 +113,12 @@ class CategoryTest extends TestCase
     public function testDelete()
     {
         /** @var Category $category */
-        $category = factory(Category::class)->create([
-            'description' => 'test_description',
-            'is_active' => false
-        ])->first();
+        $category = factory(Category::class)->create();
 
-        $this->assertTrue($category->delete());
+        $category->delete();
+        $this->assertNull(Category::find($category->id));
+
+        $category->restore();
+        $this->assertNotNull(Category::find($category->id));
     }
 }
