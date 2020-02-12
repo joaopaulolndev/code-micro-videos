@@ -10,10 +10,6 @@ abstract class BasicCrudController extends Controller
 {
     protected abstract function model();
 
-    protected abstract function routeStore();
-
-    protected abstract function routeUpdate();
-
     private $rules = [
         'name' => 'required|max:255',
         'is_active' => 'boolean'
@@ -21,9 +17,10 @@ abstract class BasicCrudController extends Controller
 
     public function index()
     {
-        return Category::all();
+        return $this->model()::all();
     }
 
+    /*
     public function store(Request $request)
     {
         $this->validate($request, $this->rules);
@@ -51,4 +48,5 @@ abstract class BasicCrudController extends Controller
         $category->delete();
         return response()->noContent();
     }
+    */
 }

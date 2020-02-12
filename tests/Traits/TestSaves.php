@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 
 namespace Tests\Traits;
 
@@ -8,6 +8,10 @@ use Illuminate\Foundation\Testing\TestResponse;
 
 trait TestSaves
 {
+    protected abstract function model();
+    protected abstract function routeStore();
+    protected abstract function routeUpdate();
+
     protected function assertStore(array $sendData, array $testDatabase, array $testJsonData = null): TestResponse
     {
         /** @var TestResponse $response */
