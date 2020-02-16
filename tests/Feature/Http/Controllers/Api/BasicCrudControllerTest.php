@@ -90,7 +90,7 @@ class BasicCrudControllerTest extends TestCase
         $reflectionMethod->invokeArgs($this->controller, [0]);
     }
 
-    /*
+
     public function testShow()
     {
         $category = CategoryStub::create(['name'=> 'test_name', 'description'=> 'test_description']);
@@ -117,5 +117,5 @@ class BasicCrudControllerTest extends TestCase
             ->assertStatus(204);
         $this->assertCount(0, CategoryStub::all());
     }
-    */
+
 }
