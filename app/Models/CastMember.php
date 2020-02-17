@@ -20,4 +20,9 @@ class CastMember extends Model
     protected $dates = ['deleted_at'];
 
     public $incrementing = false;
+
+    protected $casts = [
+        'id' => 'string',
+        'type' => 'integer'
+    ];
 }
