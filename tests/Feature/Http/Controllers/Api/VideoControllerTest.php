@@ -38,8 +38,8 @@ class VideoControllerTest extends TestCase
             'year_launched' => 2010,
             'rating' => Video::RATING_LIST[0],
             'duration' => 90,
-            //'categories_id' => [Category::first()->id],
-            //'genres_id' => [Genre::first()->id],
+            'categories_id' => [Category::first()->id],
+            'genres_id' => [Genre::first()->id],
         ];
     }
 
