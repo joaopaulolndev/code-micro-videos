@@ -9,6 +9,7 @@ use CategoriesTableSeeder;
 use DatabaseSeeder;
 use GenresTableSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
@@ -155,18 +156,19 @@ class VideoControllerTest extends TestCase
 
     public function testSave()
     {
+        $this->sendData['opened'] = false;
         $data = [
             [
                 'send_data' => $this->sendData,
-                'test_data' => $this->sendData + ['opened' => false]
+                'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
             ],
             [
                 'send_data' => $this->sendData + ['opened' => true],
-                'test_data' => $this->sendData + ['opened' => true]
+                'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
             ],
             [
                 'send_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]],
-                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+                'test_data' => Arr::except($this->sendData+ ['rating' => Video::RATING_LIST[1]], ['categories_id','genres_id'])
             ],
         ];
 
