@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\VideoController;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
@@ -10,6 +11,7 @@ use DatabaseSeeder;
 use GenresTableSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Arr;
+use Tests\Exceptions\TestException;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
@@ -27,20 +29,24 @@ class VideoControllerTest extends TestCase
 
         parent::setUp();
 
+        /*
         app(DatabaseSeeder::class)->call([
             CategoriesTableSeeder::class,
             GenresTableSeeder::class
         ]);
+        */
 
-        $this->video = factory(Video::class)->create();
+        $this->video = factory(Video::class)->create([
+            'opened' => false
+        ]);
         $this->sendData = [
             'title' => 'title',
             'description' => 'description',
             'year_launched' => 2010,
             'rating' => Video::RATING_LIST[0],
             'duration' => 90,
-            'categories_id' => [Category::first()->id],
-            'genres_id' => [Genre::first()->id],
+            //'categories_id' => [Category::first()->id],
+            //'genres_id' => [Genre::first()->id],
         ];
     }
 
@@ -156,19 +162,36 @@ class VideoControllerTest extends TestCase
 
     public function testSave()
     {
-        $this->sendData['opened'] = false;
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
+
         $data = [
             [
-                'send_data' => $this->sendData,
-                'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
+                'send_data' => $this->sendData + [
+                    'categories_id' => [$category->id],
+                        'genres_id' => [$genre->id]
+                    ],
+                'test_data' => $this->sendData+ ['opened' => false]
+                //'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
+            ],
+
+            [
+                'send_data' => $this->sendData + [
+                        'opened' => true,
+                        'categories_id' => [$category->id],
+                        'genres_id' => [$genre->id]
+                    ],
+                'test_data' => $this->sendData+ ['opened' => true]
+                //'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
             ],
             [
-                'send_data' => $this->sendData + ['opened' => true],
-                'test_data' => Arr::except($this->sendData+ ['opened' => false], ['categories_id','genres_id'])
-            ],
-            [
-                'send_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]],
-                'test_data' => Arr::except($this->sendData+ ['rating' => Video::RATING_LIST[1]], ['categories_id','genres_id'])
+                'send_data' => $this->sendData + [
+                        'rating' => Video::RATING_LIST[1],
+                        'categories_id' => [$category->id],
+                        'genres_id' => [$genre->id]
+                    ],
+                'test_data' => $this->sendData+ ['rating' => Video::RATING_LIST[1]]
+                //'test_data' => Arr::except($this->sendData+ ['rating' => Video::RATING_LIST[1]], ['categories_id','genres_id'])
             ],
         ];
 
@@ -187,6 +210,35 @@ class VideoControllerTest extends TestCase
 
         }
     }
+
+    /*
+    public function testRollbackStore()
+    {
+        $controller = \Mockery::mock(VideoController::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+
+        $controller->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn($this->sendData);
+
+        $controller->shouldReceive('rulesStore')
+            ->withAnyArgs()
+            ->andReturn([]);
+
+        $controller->shouldReceive('handleRelations')
+            ->once()
+            ->andThrow(new TestException());
+
+        $request = \Mockery::mock(\Request::class);
+
+        try {
+            $controller->store($request);
+        }catch (TestException $exception){
+            $this->assertCount(1, Video::all());
+        }
+    }
+    */
 
     public function testDestroy()
     {
