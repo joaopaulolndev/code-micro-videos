@@ -9,7 +9,7 @@ class Genre extends Model
 {
     use SoftDeletes, Traits\Uuid;
 
-    protected $fillable = ['name', 'is_active'];
+    protected $fillable = ['name','is_active'];
 
     protected $dates = ['deleted_at'];
 
@@ -22,6 +22,6 @@ class Genre extends Model
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class)->withTrashed();
+        return $this->belongsToMany(Category::class);
     }
 }
