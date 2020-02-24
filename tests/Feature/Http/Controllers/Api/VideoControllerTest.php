@@ -406,7 +406,7 @@ class VideoControllerTest extends TestCase
             'video_id' => $response->json('id')
         ]);
 
-        $this->assertDatabaseHas('category_videos', [
+        $this->assertDatabaseHas('category_video', [
             'category_id' => $categoriesId[2],
             'video_id' => $response->json('id')
         ]);
