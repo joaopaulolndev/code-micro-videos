@@ -4,53 +4,80 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 
 abstract class BasicCrudController extends Controller
 {
-    protected abstract function model();
+    protected $paginationSize = 15;
 
-    protected abstract function rulesStore();
+    abstract protected function model(): string;
 
-    protected abstract function rulesUpdate();
+    abstract protected function rulesStore(): array;
+
+    abstract protected function rulesUpdate(): array;
+
+    abstract protected function resource(): string;
+
+    abstract protected function resourceCollection(): string;
 
     public function index()
     {
-        return $this->model()::all();
+        $data = ! $this->paginationSize ? $this->model()::all() : $this->model()::paginate($this->paginationSize);
+
+        $resourceCollectionClass = $this->resourceCollection();
+        $refClass = new \ReflectionClass($this->resourceCollection());
+
+        return $refClass->isSubclassOf(ResourceCollection::class)
+            ? new $resourceCollectionClass($data)
+            : $resourceCollectionClass::collection($data);
     }
 
     public function store(Request $request)
     {
         $validatedData = $this->validate($request, $this->rulesStore());
-        $obj = $this->model()::create($validatedData);
-        $obj->refresh();
-        return $obj;
+
+        $model = $this->model()::create($validatedData);
+        $model->refresh();
+
+        $resource = $this->resource();
+
+        return new $resource($model);
+    }
+
+    public function show($id)
+    {
+        $model = $this->findOrFail($id);
+
+        $resource = $this->resource();
+
+        return new $resource($model);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validatedData = $this->validate($request, $this->rulesUpdate());
+
+        $model = $this->findOrFail($id);
+        $model->update($validatedData);
+
+        $resource = $this->resource();
+
+        return new $resource($model);
+    }
+
+    public function destroy($id)
+    {
+        $model = $this->findOrFail($id);
+        $model->delete();
+
+        return response()->noContent();
     }
 
     protected function findOrFail($id)
     {
         $model = $this->model();
-        $keyName = (new $model)->getRouteKeyName();
+        $keyName = (new $model())->getRouteKeyName();
+
         return $this->model()::where($keyName, $id)->firstOrFail();
-    }
-
-    public function show($id)
-    {
-        $obj = $this->findOrFail($id);
-        return $obj;
-    }
-
-    public function update(Request $request, $id)
-    {
-        $obj = $this->findOrFail($id);
-        $validateData = $this->validate($request, $this->rulesUpdate());
-        $obj->update($validateData);
-        return $obj;
-    }
-
-    public function destroy($id)
-    {
-        $obj = $this->findOrFail($id);
-        $obj->delete();
-        return response()->noContent();
     }
 }

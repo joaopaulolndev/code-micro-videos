@@ -5,13 +5,14 @@ namespace PHPSTORM_META {
 
    /**
     * PhpStorm Meta file, to provide autocomplete information for PhpStorm
-    * Generated on 2020-02-22 16:48:44.
+    * Generated on 2020-03-05 11:57:41.
     *
     * @author Barry vd. Heuvel <barryvdh@gmail.com>
     * @see https://github.com/barryvdh/laravel-ide-helper
     */
     override(new \Illuminate\Contracts\Container\Container, map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -58,7 +59,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -76,6 +76,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -126,7 +127,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -164,6 +164,7 @@ namespace PHPSTORM_META {
     ]));
     override(\Illuminate\Container\Container::makeWith(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -210,7 +211,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -228,6 +228,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -278,7 +279,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -316,6 +316,7 @@ namespace PHPSTORM_META {
     ]));
     override(\Illuminate\Contracts\Container\Container::make(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -362,7 +363,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -380,6 +380,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -430,7 +431,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -468,6 +468,7 @@ namespace PHPSTORM_META {
     ]));
     override(\Illuminate\Contracts\Container\Container::makeWith(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -514,7 +515,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -532,6 +532,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -582,7 +583,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -620,6 +620,7 @@ namespace PHPSTORM_META {
     ]));
     override(\App::make(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -666,7 +667,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -684,6 +684,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -734,7 +735,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -772,6 +772,7 @@ namespace PHPSTORM_META {
     ]));
     override(\App::makeWith(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -818,7 +819,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -836,6 +836,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -886,7 +887,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -924,6 +924,7 @@ namespace PHPSTORM_META {
     ]));
     override(\app(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -970,7 +971,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -988,6 +988,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -1038,7 +1039,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,
@@ -1076,6 +1076,7 @@ namespace PHPSTORM_META {
     ]));
     override(\resolve(0), map([
         '' => '@',
+        'Asm89\Stack\CorsService' => \Asm89\Stack\CorsService::class,
         'Facade\IgnitionContracts\SolutionProviderRepository' => \Facade\Ignition\SolutionProviders\SolutionProviderRepository::class,
         'Facade\Ignition\DumpRecorder\DumpRecorder' => \Facade\Ignition\DumpRecorder\DumpRecorder::class,
         'Facade\Ignition\ErrorPage\Renderer' => \Facade\Ignition\ErrorPage\Renderer::class,
@@ -1122,7 +1123,6 @@ namespace PHPSTORM_META {
         'command.controller.make' => \Illuminate\Routing\Console\ControllerMakeCommand::class,
         'command.db.wipe' => \Illuminate\Database\Console\WipeCommand::class,
         'command.down' => \Illuminate\Foundation\Console\DownCommand::class,
-        'command.dumpserver' => \BeyondCode\DumpServer\DumpServerCommand::class,
         'command.environment' => \Illuminate\Foundation\Console\EnvironmentCommand::class,
         'command.event.cache' => \Illuminate\Foundation\Console\EventCacheCommand::class,
         'command.event.clear' => \Illuminate\Foundation\Console\EventClearCommand::class,
@@ -1140,6 +1140,7 @@ namespace PHPSTORM_META {
         'command.key.generate' => \Illuminate\Foundation\Console\KeyGenerateCommand::class,
         'command.listener.make' => \Illuminate\Foundation\Console\ListenerMakeCommand::class,
         'command.mail.make' => \Illuminate\Foundation\Console\MailMakeCommand::class,
+        'command.make:solution' => \Facade\Ignition\Commands\SolutionMakeCommand::class,
         'command.middleware.make' => \Illuminate\Routing\Console\MiddlewareMakeCommand::class,
         'command.migrate' => \Illuminate\Database\Console\Migrations\MigrateCommand::class,
         'command.migrate.fresh' => \Illuminate\Database\Console\Migrations\FreshCommand::class,
@@ -1190,7 +1191,6 @@ namespace PHPSTORM_META {
         'db' => \Illuminate\Database\DatabaseManager::class,
         'db.connection' => \Illuminate\Database\MySqlConnection::class,
         'db.factory' => \Illuminate\Database\Connectors\ConnectionFactory::class,
-        'encrypter' => \Illuminate\Encryption\Encrypter::class,
         'events' => \Illuminate\Events\Dispatcher::class,
         'files' => \Illuminate\Filesystem\Filesystem::class,
         'filesystem' => \Illuminate\Filesystem\FilesystemManager::class,

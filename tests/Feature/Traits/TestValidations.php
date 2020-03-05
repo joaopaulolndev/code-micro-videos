@@ -1,34 +1,25 @@
 <?php
-declare(strict_types=1);
 
-namespace Tests\Traits;
+namespace Tests\Feature\Traits;
 
 use Illuminate\Foundation\Testing\TestResponse;
 
 trait TestValidations
 {
-    protected abstract function model();
-    protected abstract function routeStore();
-    protected abstract function routeUpdate();
+    abstract protected function routeStore(): string;
 
-    protected function assertInvalidationInStoreAction(
-        array $data,
-        string $rule,
-        array $ruleParams = []
-    )
+    abstract protected function routeUpdate(): string;
+
+    protected function assertInvalidationInStoreAction(array $data, string $rule, array $ruleParams = [])
     {
-        $response = $this->json('POST', $this->routeStore(), $data);
+        $response = $this->postJson($this->routeStore(), $data);
         $fields = array_keys($data);
         $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
     }
 
-    protected function assertInvalidationInUpdateAction(
-        array $data,
-        string $rule,
-        array $ruleParams = []
-    )
+    protected function assertInvalidationInUpdateAction(array $data, string $rule, array $ruleParams = [])
     {
-        $response = $this->json('PUT', $this->routeUpdate(), $data);
+        $response = $this->putJson($this->routeUpdate(), $data);
         $fields = array_keys($data);
         $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
     }
@@ -38,15 +29,16 @@ trait TestValidations
         array $fields,
         string $rule,
         array $ruleParams = []
-    ){
+    ) {
         $response
             ->assertStatus(422)
             ->assertJsonValidationErrors($fields);
 
-        foreach ($fields as $field){
+        foreach ($fields as $field) {
             $fieldName = str_replace('_', ' ', $field);
+
             $response->assertJsonFragment([
-                __("validation.{$rule}", ['attribute' => $fieldName] + $ruleParams)
+                \Lang::get("validation.{$rule}", ['attribute' => $fieldName] + $ruleParams),
             ]);
         }
     }

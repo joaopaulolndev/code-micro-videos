@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 namespace App\Rules;
 
@@ -21,7 +20,7 @@ class GenresHasCategoriesRule implements Rule
     /**
      * Create a new rule instance.
      *
-     * @return void
+     * @param array $categoriesId
      */
     public function __construct(array $categoriesId)
     {
@@ -31,41 +30,42 @@ class GenresHasCategoriesRule implements Rule
     /**
      * Determine if the validation rule passes.
      *
-     * @param  string  $attribute
-     * @param  mixed  $value
+     * @param string $attribute
+     * @param mixed $value
+     *
      * @return bool
      */
     public function passes($attribute, $value)
     {
-        if(!is_array($value)){
+        if (! is_array($value)) {
             $value = [];
         }
+
         $this->genresId = array_unique($value);
-        if(!count($this->genresId) || !count($this->categoriesId)){
+
+        if (! count($this->genresId) || ! count($this->categoriesId)) {
             return false;
         }
 
         $categoriesFound = [];
+
         foreach ($this->genresId as $genreId) {
             $rows = $this->getRows($genreId);
-            if(!$rows->count()) {
+
+            if (! $rows->count()) {
                 return false;
             }
+
             array_push($categoriesFound, ...$rows->pluck('category_id')->toArray());
         }
+
         $categoriesFound = array_unique($categoriesFound);
-        if(count($categoriesFound) !== count($this->categoriesId)) {
+
+        if (count($categoriesFound) !== count($this->categoriesId)) {
             return false;
         }
-        return true;
-    }
 
-    protected function getRows($genreId): Collection
-    {
-        return \DB::table('category_genre')
-            ->where('genre_id', $genreId)
-            ->whereIn('category_id', $this->categoriesId)
-            ->get();
+        return true;
     }
 
     /**
@@ -75,7 +75,20 @@ class GenresHasCategoriesRule implements Rule
      */
     public function message()
     {
-        // return 'A genre ID must be related at least a category ID';
-        return trans('validation.genres_has_categories');
+        return \Lang::get('validation.genres_has_categories');
+    }
+
+    /**
+     * @param $genreId
+     *
+     * @return Collection
+     */
+    protected function getRows($genreId): Collection
+    {
+        return \DB
+            ::table('category_genre')
+            ->where('genre_id', $genreId)
+            ->whereIn('category_id', $this->categoriesId)
+            ->get();
     }
 }

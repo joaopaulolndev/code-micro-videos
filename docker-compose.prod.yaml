@@ -1,59 +1,68 @@
-version: '3'
+version: "3"
 
 services:
+  app:
+    build:
+      context: .docker/app
+      dockerfile: Dockerfile.prod
+    container_name: app
+    environment:
+      - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID}
+      - GOOGLE_CLOUD_KEY_FILE=${GOOGLE_CLOUD_KEY_FILE}
+      - GOOGLE_CLOUD_STORAGE_BUCKET=${GOOGLE_CLOUD_STORAGE_BUCKET}
+      - GOOGLE_CLOUD_STORAGE_API_URI=${GOOGLE_CLOUD_STORAGE_API_URI}
+      - TESTING_PROD=${TESTING_PROD}
+    volumes:
+      - .:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - redis
 
-    app:
-        build: .
-        container_name: micro-videos-app
-        entrypoint: dockerize -wait tcp://db:3306 -timeout 60s ./.docker/entrypoint.sh
-        volumes:
-            - .:/var/www
-        networks:
-            - app-network
-        depends_on:
-            - db
-            - redis
+  nginx:
+    build: .docker/nginx
+    container_name: nginx
+    entrypoint: dockerize -template /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -wait tcp://app:9000 -timeout 40s nginx -g "daemon off;"
+    environment:
+      - NGINX_HOST=app
+      - NGINX_PORT=9000
+    restart: always
+    tty: true
+    ports:
+      - "8088:80"
+    volumes:
+      - .:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - app
 
-    nginx:
-        build: .docker/nginx
-        container_name: micro-videos-nginx
-        restart: always
-        tty: true
-        ports:
-            - "8000:80"
-        volumes:
-            - .:/var/www
-        networks:
-            - app-network
-        depends_on:
-            - app
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    ports:
+      - "3366:3306"
+    volumes:
+      - ./.docker/dbdata:/var/lib/mysql
+      - ./.docker/mysql:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=root
+    networks:
+      - app-network
 
-    db:
-        image: mysql:5.7
-        command: --innodb-use-native-aio=0
-        container_name: micro-videos-db
-        restart: always
-        tty: true
-        ports:
-            - "33006:3306"
-        volumes:
-            - ./.docker/dbdata:/var/lib/mysql
-            - ./.docker/mysql:/docker-entrypoint-initdb.d
-        environment:
-            # - MYSQL_DATABASE=code_micro_videos - criando pelo script initdb.sql
-            - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_USER=root
-        networks:
-            - app-network
-
-    redis:
-        image: redis:alpine
-        container_name: micro-videos-redis
-        expose:
-            - 6379
-        networks:
-            - app-network
+  redis:
+    image: redis:5.0-alpine
+    container_name: redis
+    expose:
+      - 6379
+    networks:
+      - app-network
 
 networks:
-    app-network:
-        driver: bridge
+  app-network:
+    driver: bridge

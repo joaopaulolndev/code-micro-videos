@@ -1,0 +1,50 @@
+steps:
+
+  - id: "Generating service-account-storage.json"
+    name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - kms
+      - decrypt
+      - --ciphertext-file=./storage/credentials/google/service-account-storage.json.enc
+      - --plaintext-file=./storage/credentials/google/service-account-storage.json
+      - --location=global
+      - --keyring=codeflix-microservice-videos
+      - --key=service-account
+
+  - id: "Running docker-compose"
+    name: "gcr.io/$PROJECT_ID/docker-compose"
+    args: ["-f", "docker-compose.prod.yaml", "up", "-d"]
+    env:
+      - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
+      - GOOGLE_CLOUD_KEY_FILE=storage/credentials/google/service-account-storage.json
+      - GOOGLE_CLOUD_STORAGE_BUCKET=codeflix-microservice-videos
+      - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.googleapis.com/codeflix-microservice-videos
+      - TESTING_PROD=true
+
+  - id: "Running docker ps"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["ps"]
+
+  - id: "Running composer"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "composer", "install"]
+
+  - id: "Copying .env"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "cp", ".env.example", ".env"]
+
+  - id: "Copying .env.testing"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "cp", ".env.testing.example", ".env.testing"]
+
+  - id: "Running key:generate"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "php", "/var/www/artisan", "key:generate"]
+
+  - id: "Running migrations"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "php", "/var/www/artisan", "migrate"]
+
+  - id: "Running PHPUnit"
+    name: "gcr.io/cloud-builders/docker"
+    args: ["exec", "-t", "app", "php", "/var/www/vendor/bin/phpunit", "-c", "/var/www/phpunit.xml"]

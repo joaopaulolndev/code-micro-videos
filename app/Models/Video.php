@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Traits\Uuid;
 use App\Models\Traits\UploadFiles;
+use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -18,31 +18,36 @@ class Video extends Model
     const TRAILER_FILE_MAX_SIZE = 1024 * 1024 * 1; // 1GB
     const VIDEO_FILE_MAX_SIZE = 1024 * 1024 * 50; // 50GB
 
+    public $incrementing = false;
+
     protected $fillable = [
         'title',
         'description',
         'year_launched',
         'opened',
         'rating',
-        'duration'
+        'duration',
+        'thumb_file',
+        'banner_file',
+        'trailer_file',
+        'video_file',
     ];
 
     protected $dates = ['deleted_at'];
 
     protected $casts = [
         'id' => 'string',
-        'opened' => 'boolean',
         'year_launched' => 'integer',
-        'duration' => 'integer'
+        'opened' => 'boolean',
+        'rating' => 'string',
+        'duration' => 'integer',
     ];
 
     public static $fileFields = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
 
-    public $incrementing = false;
-
     public static function create(array $attributes = [])
     {
-        $files  = self::extractFiles($attributes);
+        $files = self::extractFiles($attributes);
 
         try {
             \DB::beginTransaction();
