@@ -6,6 +6,11 @@ services:
     build: .
     container_name: micro-videos-app
     entrypoint: dockerize -wait tcp://db:3306 -timeout 60s ./.docker/entrypoint.sh
+    ports:
+      - "3000:3000"
+      - "35729:35729" #hotreload
+    environment:
+      - CHOKIFAR_USEPOLLING=true #hotreload
     #entrypoint: dockerize -template ./.docker/app/.env:.env -template ./.docker/app/.env.testing:.env.testing -wait tcp://db:3306 -timeout 60s ./.docker/entrypoint.sh
     #environment:
     #    - _DB_HOST=db
