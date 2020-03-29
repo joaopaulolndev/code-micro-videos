@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React from 'react';
-import { Container, makeStyles, Theme, createStyles } from '@material-ui/core';
+import {Container, makeStyles, Theme, createStyles, Box} from '@material-ui/core';
 import Link, { LinkProps } from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import MuiBreadcrumbs from '@material-ui/core/Breadcrumbs';
@@ -71,11 +71,11 @@ export default function Breadcrumbs() {
     return (
 
         <Container>
-            <Route>
-                {
-                    ({location}: {location: Location}) => makeBreadcrumb(location)
-                }
-            </Route>
+            <Box paddingBottom={1}>
+                <Route>
+                    {({location}: {location: Location}) => makeBreadcrumb(location)}
+                </Route>
+            </Box>
         </Container>
     );
 }
