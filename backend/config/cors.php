@@ -11,6 +11,11 @@ return [
     | to accept any value.
     |
     */
+    /*
+     * You can enable CORS for 1 or multiple paths.
+     * Example: ['api/*']
+     */
+    'paths' => ['api/*'],
 
     'supportsCredentials' => false,
     'allowedOrigins' => explode(',', env('CORS_ORIGINS', '')),
