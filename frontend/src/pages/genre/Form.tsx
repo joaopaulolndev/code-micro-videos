@@ -46,6 +46,10 @@ export const Form = () => {
             .then(({data}) => setCategories(data.data));
     },[]);
 
+    const handleChange = (event) => {
+        setValue('categories_id', event.target.value);
+    };
+
     function onSubmit(formData, event){
         console.log(event);
         genreHttp
@@ -70,9 +74,7 @@ export const Form = () => {
                 margin="normal"
                 variant="outlined"
                 fullWidth
-                onChange={(e) => {
-                    setValue('categories_id', e.target.value, true);
-                }}
+                onChange={handleChange}
                 SelectProps={{ multiple: true }}
             >
                 <MenuItem value="" disabled>
