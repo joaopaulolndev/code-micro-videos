@@ -18,8 +18,6 @@ declare module '@material-ui/core/styles/overrides' {
         MUIDataTableBodyRow: any;
         MUIDataTablePagination: any;
         MUIDataTableFilterList: any;
-        //MuiTableSortLabel:any;
-        //MuiTablePagination:any;
     }
 }
 
