@@ -4,6 +4,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import {useForm} from "react-hook-form";
 import categoryHttp from "../../util/http/category-http";
 import * as yup from 'yup';
+import {useEffect} from "react";
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -37,6 +38,10 @@ export const Form = () => {
         }
     });
 
+    useEffect(() => {
+        register({ name: 'is_active' });
+    }, [register]);
+
     function onSubmit(formData, event){
         console.log(event);
         categoryHttp
@@ -52,8 +57,8 @@ export const Form = () => {
                 label="Nome"
                 fullWidth
                 variant={'outlined'}
-                error={errors.name !== undefined}
-                helperText={errors.name && errors.name.message}
+                error={(errors as any).name !== undefined}
+                helperText={(errors as any).name && (errors as any).name.message}
             />
 
             <TextField
