@@ -22,7 +22,7 @@ export const Form = () => {
         variant: "contained"
     };
 
-    const {register, handleSubmit, getValues} = useForm({
+    const {register, handleSubmit, getValues, errors} = useForm({
         defaultValues: {
             is_active: true
         }
