@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from "react";
 import { useHistory, useParams } from 'react-router';
-import {Box, Button, ButtonProps, Checkbox, TextField, Theme} from "@material-ui/core";
+import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField, Theme} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import {useForm} from "react-hook-form";
 import categoryHttp from "../../util/http/category-http";
@@ -24,17 +24,20 @@ const validationSchema = yup.object().shape({
 
 export const Form = () => {
 
-
+    const { id } = useParams();
+    const [category, setCategory] = useState<{id: string} | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const classes = useStyles();
+    const history = useHistory();
 
     const buttonProps: ButtonProps = {
         className: classes.submit,
         color: "secondary",
-        variant: "contained"
+        variant: "contained",
+        disabled: loading
     };
 
-    const {register, handleSubmit, getValues, errors, reset} = useForm({
+    const {register, handleSubmit, setValue, getValues, errors, reset, watch} = useForm({
         validationSchema,
         defaultValues: {
             is_active: true
@@ -45,26 +48,40 @@ export const Form = () => {
         register({ name: 'is_active' });
     }, [register]);
 
-    const { id } = useParams();
-    const [category, setCategory] = useState<{id: string} | null>(null);
+
     useEffect(() => {
 
         if (!id) return;
+
+        setLoading(true);
 
         categoryHttp
             .get(id)
             .then(({data}) => {
                 setCategory(data.data);
                 reset(data.data);
-            })
+            }).finally(() => setLoading(false));
     }, []); // eslint-disable-line
 
     function onSubmit(formData, event){
+
+        setLoading(true);
+
         const http = !category
             ? categoryHttp.create(formData)
             : categoryHttp.update(category.id, formData);
 
-        http.then((response) => console.log(response))
+        http
+            .then((response) => {
+                setTimeout(() => {
+                    event
+                        ? id
+                            ? history.replace(`/categories/${response.data.data.id}/edit`)
+                            : history.push(`/categories/${response.data.data.id}/edit`)
+                        : history.push('/categories');
+                });
+            })
+            .finally(() => setLoading(false));
     }
 
     return (
@@ -75,6 +92,7 @@ export const Form = () => {
                 label="Nome"
                 fullWidth
                 variant={'outlined'}
+                disabled={loading}
                 error={(errors as any).name !== undefined}
                 helperText={(errors as any).name && (errors as any).name.message}
                 InputLabelProps={{ shrink: true }}
@@ -88,16 +106,24 @@ export const Form = () => {
                 rows="4"
                 fullWidth
                 variant={'outlined'}
+                disabled={loading}
                 margin={'normal'}
                 InputLabelProps={{ shrink: true }}
             />
-            <Checkbox
-                name="is_active"
-                color={"primary"}
-                inputRef={register}
-                defaultChecked
+            <FormControlLabel
+                disabled={loading}
+                control={
+                    <Checkbox
+                        name="is_active"
+                        color="primary"
+                        onChange={() => setValue('is_active', !getValues().is_active)}
+                        //checked={watch('is_active')}
+                        checked={true}
+                    />
+                }
+                label="Ativo?"
+                labelPlacement="end"
             />
-            Ativo ?
 
             <Box dir={"rtl"}>
                 <Button
