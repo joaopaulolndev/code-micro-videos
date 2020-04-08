@@ -55,39 +55,45 @@ export const Form = () => {
 
         if (!id) return;
 
-        setLoading(true);
+        (async () => {
 
-        categoryHttp
-            .get(id)
-            .then(({data}) => {
+            setLoading(true);
+
+            try {
+                const {data} = await categoryHttp.get(id);
                 setCategory(data.data);
                 reset(data.data);
-            }).finally(() => setLoading(false));
+            } catch (error) {
+                snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+            } finally {
+                setLoading(false);
+            }
+        })();
+
     }, []); // eslint-disable-line
 
-    function onSubmit(formData, event){
-
+    function onSubmit(formData, event) {
         setLoading(true);
 
-        const http = !category
-            ? categoryHttp.create(formData)
-            : categoryHttp.update(category.id, formData);
-
-        http
-            .then((response) => {
+        (async () => {
+            try {
+                const response = !category
+                    ? await categoryHttp.create(formData)
+                    : await categoryHttp.update(category.id, formData);
                 snackbar.enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
                 setTimeout(() => {
                     event
                         ? id
-                            ? history.replace(`/categories/${response.data.data.id}/edit`)
-                            : history.push(`/categories/${response.data.data.id}/edit`)
+                        ? history.replace(`/categories/${response.data.data.id}/edit`)
+                        : history.push(`/categories/${response.data.data.id}/edit`)
                         : history.push('/categories');
                 });
-            })
-            .catch((error) => {
+            } catch (error) {
                 snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        })();
     }
 
     return (
