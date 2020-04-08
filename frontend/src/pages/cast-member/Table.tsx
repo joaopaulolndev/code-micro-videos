@@ -42,9 +42,10 @@ const Table = (props: Props) => {
 
     const [data, setData] = useState([]);
     useEffect(() => {
-        httpVideo.get('cast-members').then(
-            response => setData(response.data.data)
-        )
+        (async function getCastMembers(){
+            const {data} = await httpVideo.get('cast-members');
+            setData(data.data);
+        })();
     }, []);
 
     return (
