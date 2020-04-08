@@ -4,6 +4,7 @@ import { useHistory, useParams } from 'react-router';
 import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField, Theme} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import {useForm} from "react-hook-form";
+import { useSnackbar } from 'notistack';
 import categoryHttp from "../../util/http/category-http";
 import * as yup from '../../util/vendor/yup';
 
@@ -29,6 +30,7 @@ export const Form = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const classes = useStyles();
     const history = useHistory();
+    const snackbar = useSnackbar();
 
     const buttonProps: ButtonProps = {
         className: classes.submit,
@@ -73,6 +75,7 @@ export const Form = () => {
 
         http
             .then((response) => {
+                snackbar.enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
                 setTimeout(() => {
                     event
                         ? id
@@ -80,6 +83,9 @@ export const Form = () => {
                             : history.push(`/categories/${response.data.data.id}/edit`)
                         : history.push('/categories');
                 });
+            })
+            .catch((error) => {
+                snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
             })
             .finally(() => setLoading(false));
     }

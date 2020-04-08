@@ -17,6 +17,7 @@
     "@types/yup": "^0.26.34",
     "date-fns": "^2.11.1",
     "mui-datatables": "^2.14.0",
+    "notistack": "^0.9.9",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-hook-form": "^5.2.0",
