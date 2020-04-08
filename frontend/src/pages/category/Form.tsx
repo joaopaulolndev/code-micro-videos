@@ -39,7 +39,7 @@ export const Form = () => {
         disabled: loading
     };
 
-    const {register, handleSubmit, setValue, getValues, errors, reset, watch} = useForm({
+    const {register, handleSubmit, setValue, getValues, errors, reset,} = useForm({
         validationSchema,
         defaultValues: {
             is_active: true
