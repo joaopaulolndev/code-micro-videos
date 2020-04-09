@@ -1,76 +1,64 @@
-import * as React from 'react';
-import {useEffect, useState} from "react";
+import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField, Theme} from "@material-ui/core";
-import {makeStyles} from "@material-ui/core/styles";
-import {useForm} from "react-hook-form";
+import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
+import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
-import categoryHttp from "../../util/http/category-http";
-import * as yup from '../../util/vendor/yup';
-import {Category} from "../../util/models";
+import * as Yup from '../../util/vendor/yup';
+import categoryHttp from '../../util/http/category-http';
+import { Category, GetResponse } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import DefaultForm from '../../components/DefaultForm';
 
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    };
-});
-
-const validationSchema = yup.object().shape({
-    name: yup.string()
+const validationSchema = Yup.object().shape({
+    name: Yup.string()
         .label('Nome')
         .max(255)
         .required(),
 });
 
-export const Form = () => {
-
+const Form: React.FC = () => {
     const { id } = useParams();
-    const [category, setCategory] = useState<Category | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const classes = useStyles();
     const history = useHistory();
     const snackbar = useSnackbar();
+    const [category, setCategory] = useState<Category | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: "secondary",
-        variant: "contained",
-        disabled: loading
-    };
-
-    const {register, handleSubmit, setValue, getValues, errors, reset,} = useForm({
+    const {
+        register,
+        handleSubmit,
+        getValues,
+        setValue,
+        errors,
+        reset,
+        watch,
+        triggerValidation,
+    } = useForm<Category>({
         validationSchema,
         defaultValues: {
-            is_active: true
-        }
+            is_active: true,
+        },
     });
 
     useEffect(() => {
         register({ name: 'is_active' });
     }, [register]);
 
-
     useEffect(() => {
-
         if (!id) return;
 
+        setLoading(true);
+
         (async () => {
-
-            setLoading(true);
-
             try {
-                const {data} = await categoryHttp.get(id);
-                setCategory(data.data);
-                reset(data.data);
+                const response = await categoryHttp.get<GetResponse<Category>>(id);
+                setCategory(response.data.data);
+                reset(response.data.data);
             } catch (error) {
                 snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
             } finally {
                 setLoading(false);
             }
         })();
-
     }, []); // eslint-disable-line
 
     function onSubmit(formData, event) {
@@ -98,29 +86,28 @@ export const Form = () => {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs:12, md: 12}} onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 name="name"
-                inputRef={register}
                 label="Nome"
                 fullWidth
-                variant={'outlined'}
+                variant="outlined"
+                inputRef={register}
                 disabled={loading}
-                error={(errors as any).name !== undefined}
-                helperText={(errors as any).name && (errors as any).name.message}
+                error={errors.name !== undefined}
+                helperText={errors.name && errors.name.message}
                 InputLabelProps={{ shrink: true }}
             />
-
             <TextField
                 name="description"
-                inputRef={register}
                 label="Descrição"
-                multiline
-                rows="4"
                 fullWidth
-                variant={'outlined'}
+                variant="outlined"
+                multiline
+                rows={4}
+                margin="normal"
+                inputRef={register}
                 disabled={loading}
-                margin={'normal'}
                 InputLabelProps={{ shrink: true }}
             />
             <FormControlLabel
@@ -130,27 +117,20 @@ export const Form = () => {
                         name="is_active"
                         color="primary"
                         onChange={() => setValue('is_active', !getValues().is_active)}
-                        //checked={watch('is_active')}
-                        checked={true}
+                        checked={watch('is_active')}
                     />
                 }
                 label="Ativo?"
                 labelPlacement="end"
             />
-
-            <Box dir={"rtl"}>
-                <Button
-                    color={"primary"}
-                    {...buttonProps}
-                    onClick={() => onSubmit(getValues(), null)}>
-                    Salvar
-                </Button>
-                <Button
-                    {...buttonProps}
-                    type="submit">
-                    Salvar e continuar editando
-                </Button>
-            </Box>
-        </form>
+            <SubmitActions
+                disabledButtons={loading}
+                handleSave={() => {
+                    triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
+                }}
+            />
+        </DefaultForm>
     );
 };
+
+export default Form;
