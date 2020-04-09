@@ -4,7 +4,8 @@ import {useEffect, useState} from "react";
 import format from "date-fns/format";
 import parseIso from "date-fns/parseISO";
 import categoryHttp from "../../util/http/category-http";
-import {BadgeYes, BadgeNo} from "../../components/Badge/index"
+import {BadgeYes, BadgeNo} from "../../components/Badge"
+import { Category, ListResponse } from '../../util/models';
 
 const columnsDefinition:MUIDataTableColumn[] = [
     {
@@ -31,11 +32,6 @@ const columnsDefinition:MUIDataTableColumn[] = [
     },
 ];
 
-interface Category {
-    id:string;
-    name:string;
-}
-
 type Props = {
     
 };
@@ -45,7 +41,7 @@ const Table = (props: Props) => {
     useEffect(() => {
         let isSubscribed = true;
         (async () => {
-            const {data} = await categoryHttp.list<{data: Category[]}>();
+            const {data} = await categoryHttp.list<ListResponse<Category>>();
             if(isSubscribed)
                 setData(data.data);
         })();

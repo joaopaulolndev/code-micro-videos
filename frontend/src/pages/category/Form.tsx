@@ -7,6 +7,7 @@ import {useForm} from "react-hook-form";
 import { useSnackbar } from 'notistack';
 import categoryHttp from "../../util/http/category-http";
 import * as yup from '../../util/vendor/yup';
+import {Category} from "../../util/models";
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -26,7 +27,7 @@ const validationSchema = yup.object().shape({
 export const Form = () => {
 
     const { id } = useParams();
-    const [category, setCategory] = useState<{id: string} | null>(null);
+    const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const classes = useStyles();
     const history = useHistory();
