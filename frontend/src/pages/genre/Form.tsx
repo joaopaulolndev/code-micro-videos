@@ -81,7 +81,7 @@ export const Form = () => {
             setLoading(true);
 
             try {
-                const promises = [categoryHttp.list()];
+                const promises = [categoryHttp.list({ queryParams: { all: true } })];
 
                 if (id) promises.push(genreHttp.get(id));
 
