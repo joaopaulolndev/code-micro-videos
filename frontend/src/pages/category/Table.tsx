@@ -9,6 +9,8 @@ import { Category, ListResponse } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -66,9 +68,8 @@ const columnsDefinition: TableColumn[] = [
             customBodyRender(value, tableMeta, updateValue) {
                 return (
                     <>
-                        <Link to={`/categories/${value}/edit`}>editar</Link>
-                        {' | '}
-                        <Link to={`/categories/${value}/delete`}>deletar</Link>
+                        <Link to={`/categories/${value}/edit`}><EditIcon color={"secondary"} /></Link>
+                        <Link to={`/categories/${value}/delete`}><DeleteIcon color={"error"} /></Link>
                     </>
                 );
             },
