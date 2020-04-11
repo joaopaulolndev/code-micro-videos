@@ -12,8 +12,10 @@
         "barryvdh/laravel-cors": "^1.0",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^6.2",
+        "laravel/helpers": "^1.2",
         "laravel/tinker": "^1.0",
-        "superbalist/laravel-google-cloud-storage": "^2.2"
+        "superbalist/laravel-google-cloud-storage": "^2.2",
+        "tucker-eric/eloquentfilter": "^2.3"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.6",

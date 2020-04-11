@@ -77,7 +77,7 @@ const Table = (props: Props) => {
                 if(isSubscribed)
                     setData(data.data);
             } catch (error) {
-                snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
+                snackbar.enqueueSnackbar('Não foi possível carregar as categorias.', { variant: 'error' });
             } finally {
                 setLoading(false);
             }

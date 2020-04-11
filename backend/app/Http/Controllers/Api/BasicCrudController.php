@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use EloquentFilter\Filterable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 abstract class BasicCrudController extends Controller
 {
-    protected $paginationSize = 15;
+    protected $defaultPerPage = 15;
 
     abstract protected function model(): string;
 
@@ -20,9 +22,20 @@ abstract class BasicCrudController extends Controller
 
     abstract protected function resourceCollection(): string;
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = ! $this->paginationSize ? $this->model()::all() : $this->model()::paginate($this->paginationSize);
+        $perPage = (int) $request->get('per_page', $this->defaultPerPage);
+        $hasFilter = in_array(Filterable::class, class_uses($this->model()));
+
+        $query = $this->queryBuilder();
+
+        if ($hasFilter) {
+            $query = $query->filter($request->all());
+        }
+
+        $data = $request->has('all') || ! $this->defaultPerPage
+            ? $query->limit(500)->get()
+            : $query->paginate($perPage < 500 ? $perPage : 500);
 
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new \ReflectionClass($this->resourceCollection());
@@ -36,7 +49,7 @@ abstract class BasicCrudController extends Controller
     {
         $validatedData = $this->validate($request, $this->rulesStore());
 
-        $model = $this->model()::create($validatedData);
+        $model = $this->queryBuilder()->create($validatedData);
         $model->refresh();
 
         $resource = $this->resource();
@@ -78,6 +91,11 @@ abstract class BasicCrudController extends Controller
         $model = $this->model();
         $keyName = (new $model())->getRouteKeyName();
 
-        return $this->model()::where($keyName, $id)->firstOrFail();
+        return $this->queryBuilder()->where($keyName, $id)->firstOrFail();
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        return $this->model()::query();
     }
 }
