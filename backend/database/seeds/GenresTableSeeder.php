@@ -13,7 +13,7 @@ class GenresTableSeeder extends Seeder
     {
         $categories = \App\Models\Category::all();
 
-        factory(\App\Models\Genre::class, 100)
+        factory(\App\Models\Genre::class, 5)
             ->create()
             ->each(function (\App\Models\Genre $genre) use ($categories) {
                 $categoriesId = $categories->random(5)->pluck('id')->toArray();
