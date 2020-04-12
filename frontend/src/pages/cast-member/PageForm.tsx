@@ -1,13 +1,11 @@
 import * as React from 'react';
-import {Form} from './Form';
-import {Page} from '../../components/Page';
+import { Page } from '../../components/Page';
+import Form from './Form';
 
-const PageForm = () => {
-    return (
-        <Page title={'Criar membro de elenco'}>
-            <Form/>
-        </Page>
-    );
-};
+const PageForm: React.FC = () => (
+  <Page title="Criar membro de elenco">
+    <Form />
+  </Page>
+);
 
 export default PageForm;
