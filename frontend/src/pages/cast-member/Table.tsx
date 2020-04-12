@@ -10,6 +10,8 @@ import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
+import EditIcon from "@material-ui/icons/Edit";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -70,9 +72,8 @@ const columnsDefinition: TableColumn[] = [
       customBodyRender(value, tableMeta, updateValue) {
         return (
           <>
-            <Link to={`/cast-members/${value}/edit`}>editar</Link>
-            {' | '}
-            <Link to={`/cast-members/${value}/delete`}>deletar</Link>
+            <Link to={`/cast-members/${value}/edit`}><EditIcon color={"secondary"} /></Link>
+            <Link to={`/cast-members/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
           </>
         );
       },

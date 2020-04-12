@@ -69,7 +69,7 @@ const columnsDefinition: TableColumn[] = [
                 return (
                     <>
                         <Link to={`/categories/${value}/edit`}><EditIcon color={"secondary"} /></Link>
-                        <Link to={`/categories/${value}/delete`}><DeleteIcon color={"error"} /></Link>
+                        <Link to={`/categories/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
                     </>
                 );
             },

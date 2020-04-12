@@ -1,5 +1,5 @@
 import {RouteProps} from 'react-router-dom'
-import Dashboard from "../pages/Dashboard";
+import Dashboard from "../pages/dashboard/index";
 
 import CategoryList from "../pages/category/PageList";
 import CategoryForm from "../pages/category/PageForm";
