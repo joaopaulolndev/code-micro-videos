@@ -9,124 +9,124 @@ import { withStyles } from '@material-ui/core/styles';
 import { debounce } from 'lodash';
 
 const defaultSearchStyles = (theme) => ({
-    main: {
-        display: 'flex',
-        flex: '1 0 auto',
+  main: {
+    display: 'flex',
+    flex: '1 0 auto',
+  },
+  searchIcon: {
+    color: theme.palette.text.secondary,
+    marginTop: '10px',
+    marginRight: '8px',
+  },
+  searchText: {
+    flex: '0.8 0',
+  },
+  clearIcon: {
+    '&:hover': {
+      color: theme.palette.error.main,
     },
-    searchIcon: {
-        color: theme.palette.text.secondary,
-        marginTop: '10px',
-        marginRight: '8px',
-    },
-    searchText: {
-        flex: '0.8 0',
-    },
-    clearIcon: {
-        '&:hover': {
-            color: theme.palette.error.main,
-        },
-    },
+  },
 });
 
 class DebouncedTableSearch extends React.Component {
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
 
-        const { searchText } = this.props;
-        let value = searchText;
+    const { searchText } = this.props;
+    let value = searchText;
 
-        if (searchText && searchText.value !== undefined) {
-            value = searchText.value;
-        }
-
-        this.state = {
-            text: value,
-        };
-
-        this.dispatchOnSearch = debounce(this.dispatchOnSearch, this.props.debounceTime);
+    if (searchText && searchText.value !== undefined) {
+      value = searchText.value;
     }
 
-    handleTextChange = (event) => {
-        const value = event.target.value;
-        this.setState({ text: value }, () => this.dispatchOnSearch(value));
+    this.state = {
+      text: value,
     };
 
-    dispatchOnSearch = (value) => {
-        this.props.onSearch(value);
-    };
+    this.dispatchOnSearch = debounce(this.dispatchOnSearch, this.props.debounceTime);
+  }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        const { searchText } = this.props;
+  handleTextChange = (event) => {
+    const value = event.target.value;
+    this.setState({ text: value }, () => this.dispatchOnSearch(value));
+  };
 
-        if (
-            searchText &&
-            searchText.value !== undefined &&
-            prevProps.searchText !== this.props.searchText
-        ) {
-            const value = searchText.value;
+  dispatchOnSearch = (value) => {
+    this.props.onSearch(value);
+  };
 
-            if (value) {
-                this.setState({ text: value }, () => this.props.onSearch(value));
-            } else {
-                try {
-                    this.props.onHide();
-                } catch (e) {
-                    //
-                }
-            }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { searchText } = this.props;
+
+    if (
+      searchText &&
+      searchText.value !== undefined &&
+      prevProps.searchText !== this.props.searchText
+    ) {
+      const value = searchText.value;
+
+      if (value) {
+        this.setState({ text: value }, () => this.props.onSearch(value));
+      } else {
+        try {
+          this.props.onHide();
+        } catch (e) {
+          //
         }
+      }
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.onKeyDown, false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.onKeyDown, false);
+  }
+
+  onKeyDown = (event) => {
+    if (event.keyCode === 27) {
+      this.props.onHide();
+    }
+  };
+
+  render() {
+    const { classes, options, onHide, searchText } = this.props;
+    let value = this.state.text;
+
+    if (searchText && searchText.value !== undefined) {
+      value = searchText.value;
     }
 
-    componentDidMount() {
-        document.addEventListener('keydown', this.onKeyDown, false);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.onKeyDown, false);
-    }
-
-    onKeyDown = (event) => {
-        if (event.keyCode === 27) {
-            this.props.onHide();
-        }
-    };
-
-    render() {
-        const { classes, options, onHide, searchText } = this.props;
-        let value = this.state.text;
-
-        if (searchText && searchText.value !== undefined) {
-            value = searchText.value;
-        }
-
-        return (
-            <Grow appear in={true} timeout={300}>
-                <div className={classes.main} ref={(el) => (this.rootRef = el)}>
-                    <SearchIcon className={classes.searchIcon} />
-                    <TextField
-                        className={classes.searchText}
-                        autoFocus={true}
-                        InputProps={{
-                            'data-test-id': options.textLabels.toolbar.search,
-                        }}
-                        inputProps={{
-                            'aria-label': options.textLabels.toolbar.search,
-                        }}
-                        value={value || ''}
-                        onChange={this.handleTextChange}
-                        fullWidth={true}
-                        inputRef={(el) => (this.searchField = el)}
-                        placeholder={options.searchPlaceholder}
-                    />
-                    <IconButton className={classes.clearIcon} onClick={onHide}>
-                        <ClearIcon />
-                    </IconButton>
-                </div>
-            </Grow>
-        );
-    }
+    return (
+      <Grow appear in={true} timeout={300}>
+        <div className={classes.main} ref={(el) => (this.rootRef = el)}>
+          <SearchIcon className={classes.searchIcon} />
+          <TextField
+            className={classes.searchText}
+            autoFocus={true}
+            InputProps={{
+              'data-test-id': options.textLabels.toolbar.search,
+            }}
+            inputProps={{
+              'aria-label': options.textLabels.toolbar.search,
+            }}
+            value={value || ''}
+            onChange={this.handleTextChange}
+            fullWidth={true}
+            inputRef={(el) => (this.searchField = el)}
+            placeholder={options.searchPlaceholder}
+          />
+          <IconButton className={classes.clearIcon} onClick={onHide}>
+            <ClearIcon />
+          </IconButton>
+        </div>
+      </Grow>
+    );
+  }
 }
 
 export default withStyles(defaultSearchStyles, { name: 'MUIDataTableSearch' })(
-    DebouncedTableSearch,
+  DebouncedTableSearch,
 );

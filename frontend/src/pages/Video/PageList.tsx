@@ -6,14 +6,14 @@ import { Page } from '../../components/Page';
 import Table from './Table';
 
 const PageList: React.FC = () => (
-  <Page title="Listagem categorias">
+  <Page title="Listagem vídeos">
     <Box dir="rtl" paddingBottom={2}>
       <Fab
-        title="Adicionar categoria"
+        title="Adicionar vídeo"
         color="secondary"
         size="small"
         component={Link}
-        to="/categories/create"
+        to="/videos/create"
       >
         <AddIcon />
       </Fab>

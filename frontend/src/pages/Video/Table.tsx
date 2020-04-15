@@ -2,14 +2,15 @@ import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
+import categoryHttp from '../../util/http/category-http';
+import videoHttp from '../../util/http/video-http';
 import { formatDate } from '../../util/format';
 import DefaultTable, { MuiDataTableRefComponent, TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, Genre, ListResponse } from '../../util/models';
+import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
-import categoryHttp from '../../util/http/category-http';
-import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
 
@@ -20,10 +21,24 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 
 const columnsDefinition: TableColumn[] = [
   {
-    name: 'name',
-    label: 'Nome',
+    name: 'title',
+    label: 'Título',
     options: {
       filter: false,
+    },
+  },
+  {
+    name: 'genres',
+    label: 'Gêneros',
+    options: {
+      filter: true,
+      filterType: 'multiselect',
+      filterOptions: {
+        names: [],
+      },
+      customBodyRender(value, tableMeta, updateValue) {
+        return value.map((genre: Genre) => genre.name).join(', ');
+      },
     },
   },
   {
@@ -36,18 +51,17 @@ const columnsDefinition: TableColumn[] = [
         names: [],
       },
       customBodyRender(value, tableMeta, updateValue) {
-          return value.map((category: Category) => category.name).join(', ');
+        return value.map((category: Category) => category.name).join(', ');
       },
     },
   },
   {
-    name: 'is_active',
-    label: 'Ativo?',
+    name: 'opened',
+    label: 'Aberto?',
     width: '15%',
     options: {
       filter: true,
       filterType: 'dropdown',
-      filterList: [],
       filterOptions: {
         names: ['Sim', 'Não'],
       },
@@ -84,8 +98,8 @@ const columnsDefinition: TableColumn[] = [
       customBodyRender(value, tableMeta, updateValue) {
         return (
           <>
-            <Link to={`/genres/${value}/edit`}><EditIcon color={"secondary"} /></Link>
-            <Link to={`/genres/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
+            <Link to={`/videos/${value}/edit`}><EditIcon color={"secondary"} /></Link>
+            <Link to={`/videos/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
           </>
         );
       },
@@ -98,7 +112,7 @@ type TableProps = {};
 const Table: React.FC = (props: TableProps) => {
   const snackbar = useSnackbar();
   const subscribed = useRef(true);
-  const [genres, setGenres] = useState<Genre[]>([]);
+  const [videos, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
   const {
@@ -117,11 +131,15 @@ const Table: React.FC = (props: TableProps) => {
     extraFilter: {
       createValidationSchema: () => {
         return Yup.object().shape({
+          genres: Yup.mixed()
+            .nullable()
+            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
+            .default(null),
           categories: Yup.mixed()
             .nullable()
             .transform((value) => (!value || value === '' ? undefined : value.split(',')))
             .default(null),
-          is_active: Yup.string()
+          opened: Yup.string()
             .nullable()
             .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
             .default(null),
@@ -130,21 +148,36 @@ const Table: React.FC = (props: TableProps) => {
       formatSearchParams: (debouncedState) => {
         return debouncedState.extraFilter
           ? {
+              ...(debouncedState.extraFilter.genres && {
+                genres: debouncedState.extraFilter.genres.join(','),
+              }),
               ...(debouncedState.extraFilter.categories && {
                 categories: debouncedState.extraFilter.categories.join(','),
               }),
-              ...(debouncedState.extraFilter.is_active !== null && {
-                is_active: debouncedState.extraFilter.is_active,
+              ...(debouncedState.extraFilter.opened !== null && {
+                opened: debouncedState.extraFilter.opened,
               }),
             }
           : undefined;
       },
       getStateFromUrl: (queryParams) => ({
+        genres: queryParams.get('genres'),
         categories: queryParams.get('categories'),
-        is_active: queryParams.get('is_active'),
+        opened: queryParams.get('opened'),
       }),
     },
   });
+
+  // column genres
+  const indexColumnGenres = columns.findIndex((column) => column.name === 'genres');
+  const columnGenres = columns[indexColumnGenres];
+  const genresFilterValue = filterState.extraFilter && filterState.extraFilter.genres;
+  (columnGenres.options as any).filterList = genresFilterValue || [];
+
+  const serverSideFilterList = columns.map((column) => []);
+  if (genresFilterValue) {
+    serverSideFilterList[indexColumnGenres] = genresFilterValue;
+  }
 
   // column categories
   const indexColumnCategories = columns.findIndex((column) => column.name === 'categories');
@@ -152,20 +185,18 @@ const Table: React.FC = (props: TableProps) => {
   const categoriesFilterValue = filterState.extraFilter && filterState.extraFilter.categories;
   (columnCategories.options as any).filterList = categoriesFilterValue || [];
 
-  const serverSideFilterList = columns.map((column) => []);
   if (categoriesFilterValue) {
     serverSideFilterList[indexColumnCategories] = categoriesFilterValue;
   }
 
-  // column is_active
-  const indexColumnIsActive = columns.findIndex((column) => column.name === 'is_active');
-  const columnIsActive = columns[indexColumnIsActive];
-  const isActiveFilterValue =
-    filterState.extraFilter && (filterState.extraFilter.is_active as never);
-  (columnIsActive.options as any).filterList = isActiveFilterValue ? [isActiveFilterValue] : [];
+  // column opened
+  const indexColumnOpened = columns.findIndex((column) => column.name === 'opened');
+  const columnOpened = columns[indexColumnOpened];
+  const openedFilterValue = filterState.extraFilter && (filterState.extraFilter.opened as never);
+  (columnOpened.options as any).filterList = openedFilterValue ? [openedFilterValue] : [];
 
-  if (isActiveFilterValue !== undefined && isActiveFilterValue !== null) {
-    serverSideFilterList[indexColumnIsActive] = [isActiveFilterValue];
+  if (openedFilterValue !== undefined && openedFilterValue !== null) {
+    serverSideFilterList[indexColumnOpened] = [openedFilterValue];
   }
 
   useEffect(() => {
@@ -173,9 +204,16 @@ const Table: React.FC = (props: TableProps) => {
 
     (async () => {
       try {
-        const response = await categoryHttp.list({ queryParams: { all: '' } });
+        const [genreResponse, categoryResponse] = await Promise.all([
+          genreHttp.list({ queryParams: { all: '' } }),
+          categoryHttp.list({ queryParams: { all: '' } }),
+        ]);
+
         if (isSubscribed) {
-          (columnCategories.options as any).filterOptions.names = response.data.data.map(
+          (columnGenres.options as any).filterOptions.names = genreResponse.data.data.map(
+            (genre) => genre.name,
+          );
+          (columnCategories.options as any).filterOptions.names = categoryResponse.data.data.map(
             (category) => category.name,
           );
         }
@@ -209,7 +247,7 @@ const Table: React.FC = (props: TableProps) => {
     setLoading(true);
 
     try {
-      const response = await genreHttp.list<ListResponse<Genre>>({
+      const response = await videoHttp.list<ListResponse<Category>>({
         queryParams: {
           search: filterManager.cleanSearchText(filterState.search),
           page: filterState.pagination.page,
@@ -217,22 +255,25 @@ const Table: React.FC = (props: TableProps) => {
           sort: filterState.order.sort,
           dir: filterState.order.dir,
           ...(debounceFilterState.extraFilter &&
+            debounceFilterState.extraFilter.genres && {
+              genres: debounceFilterState.extraFilter.genres.join(','),
+            }),
+          ...(debounceFilterState.extraFilter &&
             debounceFilterState.extraFilter.categories && {
               categories: debounceFilterState.extraFilter.categories.join(','),
             }),
           ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.is_active !== null && {
-              is_active: debounceFilterState.extraFilter.is_active === 'Sim',
+            debounceFilterState.extraFilter.opened !== null && {
+              opened: debounceFilterState.extraFilter.opened === 'Sim',
             }),
         },
       });
-
       if (subscribed.current) {
-        setGenres(response.data.data);
+        setCategories(response.data.data);
         setTotalRecords(response.data.meta.total);
       }
     } catch (error) {
-      if (categoryHttp.isCancelledRequest(error)) return;
+      if (videoHttp.isCancelledRequest(error)) return;
       snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
     } finally {
       setLoading(false);
@@ -243,7 +284,7 @@ const Table: React.FC = (props: TableProps) => {
     <DefaultTable
       title=""
       columns={columns}
-      data={genres}
+      data={videos}
       loading={loading}
       debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
       ref={tableRef}
@@ -258,16 +299,16 @@ const Table: React.FC = (props: TableProps) => {
         count: totalRecords,
         customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
         onFilterChange: (changedColumn, filterList) => {
-          if (changedColumn === 'is_active') {
+          if (changedColumn === 'opened') {
             filterManager.changeExtraFilter({
               [changedColumn]:
-                filterList[indexColumnIsActive][0] !== undefined
-                  ? filterList[indexColumnIsActive][0]
+                filterList[indexColumnOpened][0] !== undefined
+                  ? filterList[indexColumnOpened][0]
                   : null,
             });
           }
 
-          if (changedColumn === 'categories') {
+          if (changedColumn === 'genres' || changedColumn === 'categories') {
             const columnIndex = columns.findIndex((column) => column.name === changedColumn);
             filterManager.changeExtraFilter({
               [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,

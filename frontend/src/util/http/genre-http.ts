@@ -1,6 +1,4 @@
-import HttpResource from "./http-resource";
-import {httpVideo} from "./index";
+import HttpResource from './http-resource';
+import { httpVideo } from './index';
 
-const genreHttp = new HttpResource(httpVideo, "genres");
-
-export default genreHttp;
+export default new HttpResource(httpVideo, 'genres');
