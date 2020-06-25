@@ -1,328 +1,242 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import genreHttp from '../../util/http/genre-http';
-import categoryHttp from '../../util/http/category-http';
-import videoHttp from '../../util/http/video-http';
-import { formatDate } from '../../util/format';
-import DefaultTable, { MuiDataTableRefComponent, TableColumn } from '../../components/DefaultTable';
-import { BadgeNo, BadgeYes } from '../../components/Badge';
-import { Category, Genre, ListResponse } from '../../util/models';
-import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-import useFilter from '../../hooks/useFilter';
-import * as Yup from '../../util/vendor/yup';
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
-
-const DEBOUNCE_TIME = 300;
-const DEBOUNCE_SEARCH_TIME = 300;
-const ROWS_PER_PAGE = 10;
-const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
+import * as React from 'react';
+import {useEffect, useRef, useState} from "react";
+import format from "date-fns/format";
+import parseISO from "date-fns/parseISO";
+import videoHttp from "../../util/http/video-http";
+import {Video, ListResponse} from "../../util/models";
+import DefaultTable, {makeActionStyles, TableColumn, MuiDataTableRefComponent} from '../../components/Table';
+import {useSnackbar} from "notistack";
+import {IconButton, MuiThemeProvider, Theme} from "@material-ui/core";
+import {Link} from "react-router-dom";
+import EditIcon from '@material-ui/icons/Edit';
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
+import useFilter from "../../hooks/useFilter";
+import useDeleteCollection from "../../hooks/useDeleteCollection";
+import DeleteDialog from "../../components/DeleteDialog";
 
 const columnsDefinition: TableColumn[] = [
-  {
-    name: 'title',
-    label: 'Título',
-    options: {
-      filter: false,
+    {
+        name: 'id',
+        label: 'ID',
+        width: '30%',
+        options: {
+            sort: false,
+            filter: false
+        }
     },
-  },
-  {
-    name: 'genres',
-    label: 'Gêneros',
-    options: {
-      filter: true,
-      filterType: 'multiselect',
-      filterOptions: {
-        names: [],
-      },
-      customBodyRender(value, tableMeta, updateValue) {
-        return value.map((genre: Genre) => genre.name).join(', ');
-      },
+    {
+        name: "title",
+        label: "Título",
+        width: '20%',
+        options: {
+            filter: false
+        }
     },
-  },
-  {
-    name: 'categories',
-    label: 'Categorias',
-    options: {
-      filter: true,
-      filterType: 'multiselect',
-      filterOptions: {
-        names: [],
-      },
-      customBodyRender(value, tableMeta, updateValue) {
-        return value.map((category: Category) => category.name).join(', ');
-      },
+    {
+        name: "genres",
+        label: "Gêneros",
+        width: '13%',
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta, updateValue) => {
+                return value.map(value => value.name).join(', ');
+            }
+        }
     },
-  },
-  {
-    name: 'opened',
-    label: 'Aberto?',
-    width: '15%',
-    options: {
-      filter: true,
-      filterType: 'dropdown',
-      filterOptions: {
-        names: ['Sim', 'Não'],
-      },
-      customBodyRender(value, tableMeta, updateValue) {
-        return value ? <BadgeYes /> : <BadgeNo />;
-      },
+    {
+        name: "categories",
+        label: "Categorias",
+        width: '12%',
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta, updateValue) => {
+                return value.map(value => value.name).join(', ');
+            }
+        }
     },
-  },
-  {
-    name: 'created_at',
-    label: 'Criado em',
-    width: '15%',
-    options: {
-      filter: false,
-      customBodyRender(value, tableMeta, updateValue) {
-        return formatDate(value, "dd/MM/yyyy 'às' H:mm");
-      },
+    {
+        name: "created_at",
+        label: "Criado em",
+        width: '10%',
+        options: {
+            filter: false,
+            customBodyRender(value, tableMeta, updateValue) {
+                return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
+            }
+        }
     },
-  },
-  {
-    name: 'id',
-    label: 'Ações',
-    options: {
-      sort: false,
-      print: false,
-      filter: false,
-      searchable: false,
-      setCellProps: (value) => ({
-        style: {
-          width: '10%',
-          whiteSpace: 'nowrap',
-        },
-      }),
-      customBodyRender(value, tableMeta, updateValue) {
-        return (
-          <>
-            <Link to={`/videos/${value}/edit`}><EditIcon color={"secondary"} /></Link>
-            <Link to={`/videos/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
-          </>
-        );
-      },
-    },
-  },
+    {
+        name: "actions",
+        label: "Ações",
+        width: '13%',
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta) => {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/videos/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon/>
+                    </IconButton>
+                )
+            }
+        }
+    }
 ];
 
-type TableProps = {};
+const debounceTime = 300;
+const debouncedSearchTime = 300;
+const rowsPerPage = 15;
+const rowsPerPageOptions = [15, 25, 50];
+const Table = () => {
+    const snackbar = useSnackbar();
+    const subscribed = useRef(true);
+    const [data, setData] = useState<Video[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
+    const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
+//property, funcao - changePage changeRowsPerPage
+    const {
+        columns,
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        dispatch,
+        totalRecords,
+        setTotalRecords,
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        rowsPerPage,
+        rowsPerPageOptions,
+        tableRef
+    });
 
-const Table: React.FC = (props: TableProps) => {
-  const snackbar = useSnackbar();
-  const subscribed = useRef(true);
-  const [videos, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
-  const {
-    columns,
-    filterManager,
-    filterState,
-    debounceFilterState,
-    totalRecords,
-    setTotalRecords,
-  } = useFilter({
-    columns: columnsDefinition,
-    rowsPerPage: ROWS_PER_PAGE,
-    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-    debounceTime: DEBOUNCE_TIME,
-    tableRef,
-    extraFilter: {
-      createValidationSchema: () => {
-        return Yup.object().shape({
-          genres: Yup.mixed()
-            .nullable()
-            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
-            .default(null),
-          categories: Yup.mixed()
-            .nullable()
-            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
-            .default(null),
-          opened: Yup.string()
-            .nullable()
-            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
-            .default(null),
-        });
-      },
-      formatSearchParams: (debouncedState) => {
-        return debouncedState.extraFilter
-          ? {
-              ...(debouncedState.extraFilter.genres && {
-                genres: debouncedState.extraFilter.genres.join(','),
-              }),
-              ...(debouncedState.extraFilter.categories && {
-                categories: debouncedState.extraFilter.categories.join(','),
-              }),
-              ...(debouncedState.extraFilter.opened !== null && {
-                opened: debouncedState.extraFilter.opened,
-              }),
-            }
-          : undefined;
-      },
-      getStateFromUrl: (queryParams) => ({
-        genres: queryParams.get('genres'),
-        categories: queryParams.get('categories'),
-        opened: queryParams.get('opened'),
-      }),
-    },
-  });
-
-  // column genres
-  const indexColumnGenres = columns.findIndex((column) => column.name === 'genres');
-  const columnGenres = columns[indexColumnGenres];
-  const genresFilterValue = filterState.extraFilter && filterState.extraFilter.genres;
-  (columnGenres.options as any).filterList = genresFilterValue || [];
-
-  const serverSideFilterList = columns.map((column) => []);
-  if (genresFilterValue) {
-    serverSideFilterList[indexColumnGenres] = genresFilterValue;
-  }
-
-  // column categories
-  const indexColumnCategories = columns.findIndex((column) => column.name === 'categories');
-  const columnCategories = columns[indexColumnCategories];
-  const categoriesFilterValue = filterState.extraFilter && filterState.extraFilter.categories;
-  (columnCategories.options as any).filterList = categoriesFilterValue || [];
-
-  if (categoriesFilterValue) {
-    serverSideFilterList[indexColumnCategories] = categoriesFilterValue;
-  }
-
-  // column opened
-  const indexColumnOpened = columns.findIndex((column) => column.name === 'opened');
-  const columnOpened = columns[indexColumnOpened];
-  const openedFilterValue = filterState.extraFilter && (filterState.extraFilter.opened as never);
-  (columnOpened.options as any).filterList = openedFilterValue ? [openedFilterValue] : [];
-
-  if (openedFilterValue !== undefined && openedFilterValue !== null) {
-    serverSideFilterList[indexColumnOpened] = [openedFilterValue];
-  }
-
-  useEffect(() => {
-    let isSubscribed = true;
-
-    (async () => {
-      try {
-        const [genreResponse, categoryResponse] = await Promise.all([
-          genreHttp.list({ queryParams: { all: '' } }),
-          categoryHttp.list({ queryParams: { all: '' } }),
-        ]);
-
-        if (isSubscribed) {
-          (columnGenres.options as any).filterOptions.names = genreResponse.data.data.map(
-            (genre) => genre.name,
-          );
-          (columnCategories.options as any).filterOptions.names = categoryResponse.data.data.map(
-            (category) => category.name,
-          );
+    useEffect(() => {
+        subscribed.current = true;
+        filterManager.pushHistory();
+        getData();
+        return () => {
+            subscribed.current = false;
         }
-      } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      }
-    })();
+    }, [
+        filterManager.cleanSearchText(debouncedFilterState.search),
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order
+    ]);
 
-    return () => {
-      isSubscribed = false;
-    };
-  }, []); // eslint-disable-line
-
-  useEffect(() => {
-    subscribed.current = true;
-    filterManager.pushHistory();
-    getData();
-    return () => {
-      subscribed.current = false;
-    };
-    // eslint-disable-next-line
-  }, [
-    filterManager.cleanSearchText(debounceFilterState.search), // eslint-disable-line
-    debounceFilterState.pagination.page,
-    debounceFilterState.pagination.per_page,
-    debounceFilterState.order,
-    JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
-  ]);
-
-  async function getData() {
-    setLoading(true);
-
-    try {
-      const response = await videoHttp.list<ListResponse<Category>>({
-        queryParams: {
-          search: filterManager.cleanSearchText(filterState.search),
-          page: filterState.pagination.page,
-          per_page: filterState.pagination.per_page,
-          sort: filterState.order.sort,
-          dir: filterState.order.dir,
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.genres && {
-              genres: debounceFilterState.extraFilter.genres.join(','),
-            }),
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.categories && {
-              categories: debounceFilterState.extraFilter.categories.join(','),
-            }),
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.opened !== null && {
-              opened: debounceFilterState.extraFilter.opened === 'Sim',
-            }),
-        },
-      });
-      if (subscribed.current) {
-        setCategories(response.data.data);
-        setTotalRecords(response.data.meta.total);
-      }
-    } catch (error) {
-      if (videoHttp.isCancelledRequest(error)) return;
-      snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-    } finally {
-      setLoading(false);
+    async function getData() {
+        setLoading(true);
+        try {
+            const {data} = await videoHttp.list<ListResponse<Video>>({
+                queryParams: {
+                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.sort,
+                    dir: debouncedFilterState.order.dir,
+                }
+            });
+            if (subscribed.current) {
+                setData(data.data);
+                setTotalRecords(data.meta.total);
+                if(openDeleteDialog){
+                    setOpenDeleteDialog(false);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            if (videoHttp.isCancelledRequest(error)) {
+                return;
+            }
+            snackbar.enqueueSnackbar(
+                'Não foi possível carregar as informações',
+                {variant: 'error',}
+            )
+        } finally {
+            setLoading(false);
+        }
     }
-  }
 
-  return (
-    <DefaultTable
-      title=""
-      columns={columns}
-      data={videos}
-      loading={loading}
-      debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
-      ref={tableRef}
-      options={{
-        serverSide: true,
-        serverSideFilterList,
-        responsive: 'scrollMaxHeight',
-        searchText: filterState.search as any,
-        page: filterState.pagination.page - 1,
-        rowsPerPage: filterState.pagination.per_page,
-        rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-        count: totalRecords,
-        customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
-        onFilterChange: (changedColumn, filterList) => {
-          if (changedColumn === 'opened') {
-            filterManager.changeExtraFilter({
-              [changedColumn]:
-                filterList[indexColumnOpened][0] !== undefined
-                  ? filterList[indexColumnOpened][0]
-                  : null,
-            });
-          }
+    function deleteRows(confirmed: boolean) {
+        if (!confirmed) {
+            setOpenDeleteDialog(false);
+            return;
+        }
+        const ids = rowsToDelete
+            .data
+            .map(value => data[value.index].id)
+            .join(',');
+        videoHttp
+            .deleteCollection({ids})
+            .then(response => {
+                snackbar.enqueueSnackbar(
+                    'Registros excluídos com sucesso',
+                    {variant: 'success'}
+                );
+                if(
+                    rowsToDelete.data.length === filterState.pagination.per_page
+                    && filterState.pagination.page > 1
+                ){
+                    const page = filterState.pagination.page - 2;
+                    filterManager.changePage(page);
+                }else{
+                    getData();
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Não foi possível excluir os registros',
+                    {variant: 'error',}
+                )
+            })
+    }
 
-          if (changedColumn === 'genres' || changedColumn === 'categories') {
-            const columnIndex = columns.findIndex((column) => column.name === changedColumn);
-            filterManager.changeExtraFilter({
-              [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,
-            });
-          }
-        },
-        onSearchChange: (value) => filterManager.changeSearch(value),
-        onChangePage: (page) => filterManager.changePage(page),
-        onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
-        onColumnSortChange: (changedColumn, direction) =>
-          filterManager.changeColumnSort(changedColumn, direction),
-      }}
-    />
-  );
+
+    return (
+        <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
+            <DeleteDialog open={openDeleteDialog} handleClose={deleteRows}/>
+            <DefaultTable
+                title=""
+                columns={columns}
+                data={data}
+                loading={loading}
+                debouncedSearchTime={debouncedSearchTime}
+                ref={tableRef}
+                options={{
+                    serverSide: true,
+                    responsive: "scrollMaxHeight",
+                    searchText: filterState.search as any,
+                    page: filterState.pagination.page - 1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
+                    count: totalRecords,
+                    customToolbar: () => (
+                        <FilterResetButton
+                            handleClick={() => filterManager.resetFilter()}
+                        />
+                    ),
+                    onSearchChange: (value) => filterManager.changeSearch(value),
+                    onChangePage: (page) => filterManager.changePage(page),
+                    onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+                    onColumnSortChange: (changedColumn: string, direction: string) =>
+                        filterManager.changeColumnSort(changedColumn, direction),
+                    onRowsDelete: (rowsDeleted: any[]) => {
+                        setRowsToDelete(rowsDeleted as any);
+                        return false;
+                    },
+                }}
+            />
+        </MuiThemeProvider>
+    );
 };
 
 export default Table;
+

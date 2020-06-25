@@ -1,219 +1,186 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import categoryHttp from '../../util/http/category-http';
-import { formatDate } from '../../util/format';
-import DefaultTable, { MuiDataTableRefComponent, TableColumn } from '../../components/DefaultTable';
-import { BadgeNo, BadgeYes } from '../../components/Badge';
-import { Category, ListResponse } from '../../util/models';
-import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-import useFilter from '../../hooks/useFilter';
-import * as Yup from '../../util/vendor/yup';
+import * as React from 'react';
+import {useEffect, useReducer, useRef, useState} from "react";
+import format from "date-fns/format";
+import parseISO from "date-fns/parseISO";
+import categoryHttp from "../../util/http/category-http";
+import {BadgeNo, BadgeYes} from "../../components/Badge";
+import {Category, ListResponse} from "../../util/models";
+import DefaultTable, {makeActionStyles, TableColumn, MuiDataTableRefComponent} from '../../components/Table';
+import {useSnackbar} from "notistack";
+import {IconButton, MuiThemeProvider, Theme} from "@material-ui/core";
+import {Link} from "react-router-dom";
 import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-
-const DEBOUNCE_TIME = 300;
-const DEBOUNCE_SEARCH_TIME = 300;
-const ROWS_PER_PAGE = 10;
-const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
+import reducer, {INITIAL_STATE, Creators} from "../../store/filter";
+import useFilter from "../../hooks/useFilter";
+import {useContext} from "react";
+import LoadingContext from "../../components/loading/LoadingContext";
 
 const columnsDefinition: TableColumn[] = [
-  {
-    name: 'name',
-    label: 'Nome',
-    options: {
-      filter: false,
+    {
+        name: 'id',
+        label: 'ID',
+        width: '30%',
+        options: {
+            sort: false,
+            filter: false
+        }
     },
-  },
-  {
-    name: 'is_active',
-    label: 'Ativo?',
-    width: '15%',
-    options: {
-      filter: true,
-      filterType: 'dropdown',
-      filterOptions: {
-        names: ['Sim', 'Não'],
-      },
-      customBodyRender(value, tableMeta, updateValue) {
-        return value ? <BadgeYes /> : <BadgeNo />;
-      },
+    {
+        name: "name",
+        label: "Nome",
+        width: '43%',
+        options: {
+            filter: false
+        }
     },
-  },
-  {
-    name: 'created_at',
-    label: 'Criado em',
-    width: '15%',
-    options: {
-      filter: false,
-      customBodyRender(value, tableMeta, updateValue) {
-        return formatDate(value, "dd/MM/yyyy 'às' H:mm");
-      },
-    },
-  },
-  {
-    name: 'id',
-    label: 'Ações',
-    options: {
-      sort: false,
-      print: false,
-      filter: false,
-      searchable: false,
-      setCellProps: (value) => ({
-        style: {
-          width: '10%',
-          whiteSpace: 'nowrap',
+    {
+        name: "is_active",
+        label: "Ativo?",
+        width: '4%',
+        options: {
+            filterOptions: {
+              names: ['Sim', 'Não']
+            },
+            customBodyRender(value, tableMeta, updateValue) {
+                return value ? <BadgeYes/> : <BadgeNo/>;
+            }
         },
-      }),
-      customBodyRender(value, tableMeta, updateValue) {
-        return (
-          <>
-            <Link to={`/categories/${value}/edit`}><EditIcon color={"secondary"} /></Link>
-            <Link to={`/categories/${value}/delete`}><DeleteIcon color={"secondary"} /></Link>
-          </>
-        );
-      },
     },
-  },
+    {
+        name: "created_at",
+        label: "Criado em",
+        width: '10%',
+        options: {
+            filter: false,
+            customBodyRender(value, tableMeta, updateValue) {
+                return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
+            }
+        }
+    },
+    {
+        name: "actions",
+        label: "Ações",
+        width: '13%',
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta) => {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/categories/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon/>
+                    </IconButton>
+                )
+            }
+        }
+    }
 ];
 
-type TableProps = {};
+const debounceTime = 300;
+const debouncedSearchTime = 300;
+const rowsPerPage = 15;
+const rowsPerPageOptions = [15, 25, 50];
+const Table = () => {
+    const snackbar = useSnackbar();
+    const subscribed = useRef(true);
+    const [data, setData] = useState<Category[]>([]);
+    const loading = useContext(LoadingContext);
+    const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
+//property, funcao - changePage changeRowsPerPage
+    const {
+        columns,
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        dispatch,
+        totalRecords,
+        setTotalRecords,
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        rowsPerPage,
+        rowsPerPageOptions,
+        tableRef
+    });
 
-const Table: React.FC = (props: TableProps) => {
-  const snackbar = useSnackbar();
-  const subscribed = useRef(true);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
-  const {
-    columns,
-    filterManager,
-    filterState,
-    debounceFilterState,
-    totalRecords,
-    setTotalRecords,
-  } = useFilter({
-    columns: columnsDefinition,
-    rowsPerPage: ROWS_PER_PAGE,
-    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-    debounceTime: DEBOUNCE_TIME,
-    tableRef,
-    extraFilter: {
-      createValidationSchema: () => {
-        return Yup.object().shape({
-          is_active: Yup.string()
-            .nullable()
-            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
-            .default(null),
-        });
-      },
-      formatSearchParams: (debouncedState) => {
-        return debouncedState.extraFilter
-          ? {
-              ...(debouncedState.extraFilter.is_active !== null && {
-                is_active: debouncedState.extraFilter.is_active,
-              }),
-            }
-          : undefined;
-      },
-      getStateFromUrl: (queryParams) => ({ is_active: queryParams.get('is_active') }),
-    },
-  });
+    useEffect(() => {
+        subscribed.current = true;
+        filterManager.pushHistory();
+        getData();
+        return () => {
+            subscribed.current = false;
+        }
+    }, [
+        filterManager.cleanSearchText(debouncedFilterState.search),
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order
+    ]);
 
-  useEffect(() => {
-    subscribed.current = true;
-    filterManager.pushHistory();
-    getData();
-    return () => {
-      subscribed.current = false;
-    };
-    // eslint-disable-next-line
-  }, [
-    filterManager.cleanSearchText(debounceFilterState.search), // eslint-disable-line
-    debounceFilterState.pagination.page,
-    debounceFilterState.pagination.per_page,
-    debounceFilterState.order,
-    JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
-  ]);
-
-  // column is_active
-  const indexColumnIsActive = columns.findIndex((column) => column.name === 'is_active');
-  const columnIsActive = columns[indexColumnIsActive];
-  const isActiveFilterValue =
-    filterState.extraFilter && (filterState.extraFilter.is_active as never);
-  (columnIsActive.options as any).filterList = isActiveFilterValue ? [isActiveFilterValue] : [];
-
-  const serverSideFilterList = columns.map((column) => []);
-  if (isActiveFilterValue !== undefined && isActiveFilterValue !== null) {
-    serverSideFilterList[indexColumnIsActive] = [isActiveFilterValue];
-  }
-
-  async function getData() {
-    setLoading(true);
-
-    try {
-      const response = await categoryHttp.list<ListResponse<Category>>({
-        queryParams: {
-          search: filterManager.cleanSearchText(filterState.search),
-          page: filterState.pagination.page,
-          per_page: filterState.pagination.per_page,
-          sort: filterState.order.sort,
-          dir: filterState.order.dir,
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.is_active !== null && {
-              is_active: debounceFilterState.extraFilter.is_active === 'Sim',
-            }),
-        },
-      });
-      if (subscribed.current) {
-        setCategories(response.data.data);
-        setTotalRecords(response.data.meta.total);
-      }
-    } catch (error) {
-      if (categoryHttp.isCancelledRequest(error)) return;
-      snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <DefaultTable
-      title=""
-      columns={columns}
-      data={categories}
-      loading={loading}
-      debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
-      ref={tableRef}
-      options={{
-        serverSide: true,
-        serverSideFilterList,
-        responsive: 'scrollMaxHeight',
-        searchText: filterState.search as any,
-        page: filterState.pagination.page - 1,
-        rowsPerPage: filterState.pagination.per_page,
-        rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-        count: totalRecords,
-        customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
-        onFilterChange: (changedColumn, filterList) => {
-          if (changedColumn === 'is_active') {
-            filterManager.changeExtraFilter({
-              [changedColumn]:
-                filterList[indexColumnIsActive][0] !== undefined
-                  ? filterList[indexColumnIsActive][0]
-                  : null,
+    async function getData() {
+        try {
+            const {data} = await categoryHttp.list<ListResponse<Category>>({
+                queryParams: {
+                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.sort,
+                    dir: debouncedFilterState.order.dir,
+                }
             });
-          }
-        },
-        onSearchChange: (value) => filterManager.changeSearch(value),
-        onChangePage: (page) => filterManager.changePage(page),
-        onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
-        onColumnSortChange: (changedColumn, direction) =>
-          filterManager.changeColumnSort(changedColumn, direction),
-      }}
-    />
-  );
+            if (subscribed.current) {
+                setData(data.data);
+                setTotalRecords(data.meta.total);
+            }
+        } catch (error) {
+            console.error(error);
+            if (categoryHttp.isCancelledRequest(error)) {
+                return;
+            }
+            snackbar.enqueueSnackbar(
+                'Não foi possível carregar as informações',
+                {variant: 'error',}
+            )
+        }
+    }
+
+
+    return (
+        <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
+            <DefaultTable
+                title=""
+                columns={columns}
+                data={data}
+                loading={loading}
+                debouncedSearchTime={debouncedSearchTime}
+                ref={tableRef}
+                options={{
+                    serverSide: true,
+                    responsive: "scrollMaxHeight",
+                    searchText: filterState.search as any,
+                    page: filterState.pagination.page - 1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
+                    count: totalRecords,
+                    customToolbar: () => (
+                        <FilterResetButton
+                            handleClick={() => filterManager.resetFilter()}
+                        />
+                    ),
+                    onSearchChange: (value) => filterManager.changeSearch(value),
+                    onChangePage: (page) => filterManager.changePage(page),
+                    onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+                    onColumnSortChange: (changedColumn: string, direction: string) =>
+                        filterManager.changeColumnSort(changedColumn, direction)
+                }}
+            />
+        </MuiThemeProvider>
+    );
 };
 
-// @ts-ignore
 export default Table;
+

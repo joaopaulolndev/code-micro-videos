@@ -1,25 +1,36 @@
 import React from 'react';
-import { Box, CssBaseline, MuiThemeProvider } from '@material-ui/core';
-import { BrowserRouter } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
-import AppRouter from './routes/AppRouter';
-import Breadcrumbs from './components/Breadcrumbs';
-import { SnackbarProvider } from './components/SnackbarProvider';
-import theme from './theme';
+import './App.css';
+import {Navbar} from "./components/Navbar";
+import {Box, MuiThemeProvider, CssBaseline} from "@material-ui/core";
+import {BrowserRouter} from "react-router-dom";
+import AppRouter from "./routes/AppRouter";
+import Breadcrumbs from "./components/Breadcrumbs";
+import theme from "./theme";
+import {SnackbarProvider} from "./components/SnackbarProvider";
+import Spinner from "./components/Spinner";
+import LoadingContext from "./components/loading/LoadingContext";
+import {LoadingProvider} from "./components/loading/LoadingProvider";
 
-const App: React.FC = () => (
-  <MuiThemeProvider theme={theme}>
-    <SnackbarProvider>
-      <CssBaseline />
-      <BrowserRouter>
-        <Navbar />
-        <Box paddingTop="70px">
-          <Breadcrumbs />
-          <AppRouter />
-        </Box>
-      </BrowserRouter>
-    </SnackbarProvider>
-  </MuiThemeProvider>
-);
+const App: React.FC = () => {
+    return (
+        <React.Fragment>
+            <LoadingProvider>
+                <MuiThemeProvider theme={theme}>
+                    <SnackbarProvider>
+                        <CssBaseline/>
+                        <BrowserRouter>
+                            <Spinner/>
+                            <Navbar/>
+                            <Box paddingTop={'70px'}>
+                                <Breadcrumbs/>
+                                <AppRouter/>
+                            </Box>
+                        </BrowserRouter>
+                    </SnackbarProvider>
+                </MuiThemeProvider>
+            </LoadingProvider>
+        </React.Fragment>
+    );
+}
 
 export default App;

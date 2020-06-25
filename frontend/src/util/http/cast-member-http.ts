@@ -1,4 +1,6 @@
-import HttpResource from './http-resource';
-import { httpVideo } from './index';
+import HttpResource from "./http-resource";
+import {httpVideo} from "./index";
 
-export default new HttpResource(httpVideo, 'cast-members');
+const castMemberHttp = new HttpResource(httpVideo, "cast_members");
+
+export default castMemberHttp;
